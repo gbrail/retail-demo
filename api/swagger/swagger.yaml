@@ -1,0 +1,193 @@
+swagger: "2.0"
+info:
+  version: "0.0.1"
+  title: Retail Demo
+host: localhost:10010
+basePath: /
+
+schemes:
+  - http
+  - https
+
+consumes:
+  - application/json
+  - application/x-www-form-urlencoded
+
+produces:
+  - application/json
+  
+x-a127-config:
+  demo.key: &apigeeProxyKey CONFIGURED
+  demo.uri: &apigeeProxyUri CONFIGURED
+  
+x-a127-services:
+  spikearrest:
+    provider: volos-spikearrest-memory
+    options:
+      timeUnit: "minute"
+      allow: 6000
+  apiKey:
+    provider: volos-oauth-apigee
+    options:
+      key: *apigeeProxyKey
+      uri: *apigeeProxyUri
+      cache: keyCache
+  oauth:
+    provider: volos-oauth-apigee
+    options:
+      key: *apigeeProxyKey
+      uri: *apigeeProxyUri
+      cache: keyCache
+      validGrantTypes:
+        - client_credentials
+      tokenPaths:
+        authorize: /oauth/authorize
+        token: /oauth/accesstoken
+        invalidate: /oauth/invalidate
+        refresh: /oauth/refresh
+  keyCache:
+    provider: volos-cache-memory
+    options:
+      name: keyCache
+      ttl: 5000
+  analytics:
+    provider: volos-analytics-apigee
+    options:
+      key: *apigeeProxyKey
+      uri: *apigeeProxyUri
+      proxy: ConferenceDemo
+securityDefinitions:
+  apiKey:
+    type: apiKey
+    name: apiKey
+    in: query
+  oauth:
+    type: oauth2
+    flow: application
+    tokenUrl: ignored
+      
+paths:
+  /products:
+    x-swagger-router-controller: products
+    x-a127-apply:
+      spikearrest:
+        key:
+          helper: traffic
+          function: clientIp
+      analytics: {}
+    get:
+      description: Return a list of products
+      operationId: getProducts
+      security:
+        - apiKey: []
+      parameters:
+        - name: description
+          in: query
+          description: A word or words in the description of the product
+          required: false
+          type: string
+        - name: color
+          in: query
+          description: The color of the product
+          required: false
+          type: string
+        - name: manufacturer
+          in: query
+          description: The company who made the product
+          required: false
+          type: string
+        - name: offset
+          in: query
+          description: The position to start returning results from. Default is zero.
+          required: false
+          type: integer
+        - name: limit
+          in: query
+          description: The maximum number of results to return. Default is 100.
+          required: false
+          type: integer
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/ProductList"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+    post:
+      description: Create a new product
+      operationId: createProduct
+      security:
+        - oauth: []
+      parameters:
+        - name: body
+          in: body
+          schema:
+            $ref: "#/definitions/Product"
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/Product"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /products/{sku}:
+    x-swagger-router-controller: products
+    x-a127-apply:
+      spikearrest:
+        key:
+          helper: traffic
+          function: clientIp
+      analytics: {}
+    get:
+      description: Return a product by SKU
+      operationId: getProduct
+      security:
+        - apiKey: []
+      parameters:
+        - name: sku
+          in: path
+          description: The SKU to return
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/Product"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+definitions:
+  Product:
+    required:
+      - sku
+    properties:
+      sku:
+        type: string
+      manufacturer:
+        type: string
+      description:
+        type: string
+      price:
+        type: string
+      color:
+        type: string
+  ProductList:
+    required:
+      - products
+    properties:
+      products:
+        type: array
+        items:
+          $ref: "#/definitions/Product"
+  ErrorResponse:
+    required:
+      - message
+    properties:
+      message:
+        type: string
