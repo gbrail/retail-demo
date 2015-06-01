@@ -89,7 +89,9 @@ module.exports.createProduct = function(req, res) {
 };
 
 function fixRow(row) {
-	row.price = row.price.toString();
+	if (row.price) {
+	  row.price = row.price.toString();
+	}
 	return row;
 }
 

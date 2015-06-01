@@ -65,6 +65,9 @@ securityDefinitions:
     type: oauth2
     flow: application
     tokenUrl: ignored
+    scopes:
+      READ: "default"
+      WRITE: "allow changes"
       
 paths:
   /products:
@@ -119,7 +122,8 @@ paths:
       description: Create a new product
       operationId: createProduct
       security:
-        - oauth: []
+        - oauth: 
+          - WRITE
       parameters:
         - name: body
           in: body

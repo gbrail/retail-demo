@@ -1,0 +1,7 @@
+curl "https://the-brails-test.apigee.net/retail-demo/products?apiKey=bmrXePZbYCSyBjR30T1iulJNySDDiFLG"
+
+http://playground.apistudio.io/63e70701-ef69-4f79-8461-0e166a531537#/
+
+curl https://the-brails-test.apigee.net/retail-demo/oauth/accesstoken -u bmrXePZbYCSyBjR30T1iulJNySDDiFLG:h6RG6t1ScjrnKUsb -d 'grant_type=client_credentials&scope=READ WRITE' 
+
+curl https://the-brails-test.apigee.net/retail-demo/products -H "Content-Type: application/json" -d '{"name":"FooProduct","sku":"99999"}' -H "Authorization: Bearer u9pAkIObSsg6y10zIZmfMkA8CLc6" 
